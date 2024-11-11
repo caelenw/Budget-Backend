@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
 });
 
 let spending = [
-  [
+  
     {
     "logo": "insurance",
     "Item": "Doctor Appointment",
@@ -205,7 +205,7 @@ let spending = [
     "Routine check-up for my cat."
     ]
     }
-    ]
+    
 
 ];
 
@@ -241,45 +241,9 @@ app.post("/api/spending", upload.single("img"), (req, res) => {
   res.status(200).send(transaction);
 });
 
-app.put("/api/spending/:id", upload.single("img"), (req, res) => {
-  let transaction = spending.find((t) => t._id === parseInt(req.params.id));
 
-  if (!transaction) res.status(400).send("Transaction with given id was not found");
 
-  const result = validateSpending(req.body);
 
-  if (result.error) {
-    res.status(400).send(result.error.details[0].message);
-    return;
-  }
-
-  transaction.logo = req.body.logo;
-  transaction.Item = req.body.Item;
-  transaction.Price = req.body.Price;
-  transaction.Account = req.body.Account;
-  transaction.Date = req.body.Date;
-  transaction.Categorie = req.body.Categorie;
-  transaction.Status = req.body.Status;
-  transaction.Comments = req.body.Comments;
-
-  if (req.file) {
-    transaction.main_image = "images/" + req.file.filename;
-  }
-
-  res.send(transaction);
-});
-
-app.delete("/api/spending/:id", (req, res) => {
-  const transaction = spending.find((t) => t._id === parseInt(req.params.id));
-
-  if (!transaction) {
-    res.status(404).send("The transaction with the given id was not found");
-  }
-
-  const index = spending.indexOf(transaction);
-  spending.splice(index, 1);
-  res.send(transaction);
-});
 
 const validateSpending = (transaction) => {
   const schema = Joi.object({
