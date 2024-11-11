@@ -23,8 +23,13 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
+app.get("/api/spending", (req, res) => {
+  res.send(spending);
+});
+
+
 let spending = [
-  
+ [
     {
         "logo": "insurance",
         "Item": "Doctor Appointment",
@@ -205,20 +210,12 @@ let spending = [
             "Routine check-up for my cat."
         ]
     }
-
+]
 ];
-
-app.get("/api/spending", (req, res) => {
-  res.send(spending);
-});
-
-
 
 app.put("/api/spending/:id", upload.single("img"), (req, res) => {
   let transaction = spending.find((t) => t._id === parseInt(req.params.id));
-
-  if (!transaction) res.status(400).send("Transaction with given id was not found");
-
+  if (!transaction) res.status(400).send("Transaction not found");
   const result = validateSpending(req.body);
 
   if (result.error) {
@@ -243,6 +240,7 @@ app.put("/api/spending/:id", upload.single("img"), (req, res) => {
 });
 
 
+
 const validateSpending = (transaction) => {
   const schema = Joi.object({
     _id: Joi.allow(""),
@@ -260,5 +258,4 @@ const validateSpending = (transaction) => {
 };
 
 app.listen(3002, () => {
-  console.log("I'm listening");
 });
