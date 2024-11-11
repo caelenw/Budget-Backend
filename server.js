@@ -23,199 +23,229 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
+let spending = [
+  [
+    {
+    "logo": "insurance",
+    "Item": "Doctor Appointment",
+    "Price": "$120",
+    "Account": "Insurance",
+    "Date": "2024-09-22",
+    "Categorie": "Health",
+    "Status": "Paid",
+    "Comments": [
+    "Routine check-up, very thorough!"
+    ]
+    },
+    {
+    "logo": "health",
+    "Item": "Pharmacy Purchase",
+    "Price": "$45",
+    "Account": "Debit Card",
+    "Date": "2024-09-23",
+    "Categorie": "Health",
+    "Status": "Paid",
+    "Comments": [
+    "Needed some meds and supplements."
+    ]
+    },
+    {
+    "logo": "rent",
+    "Item": "Monthly Rent",
+    "Price": "$1200",
+    "Account": "Bank Transfer",
+    "Date": "2024-09-24",
+    "Categorie": "Rent",
+    "Status": "Paid",
+    "Comments": [
+    "Paid on time, love this place!"
+    ]
+    },
+    {
+    "logo": "pets",
+    "Item": "Pet Food",
+    "Price": "$30",
+    "Account": "Credit Card",
+    "Date": "2024-09-25",
+    "Categorie": "Pets",
+    "Status": "Paid",
+    "Comments": [
+    "My dog loves this brand!"
+    ]
+    },
+    {
+    "logo": "insurance",
+    "Item": "Health Insurance Premium",
+    "Price": "$300",
+    "Account": "Visa",
+    "Date": "2024-09-26",
+    "Categorie": "Insurance",
+    "Status": "Paid",
+    "Comments": [
+    "Monthly premium for peace of mind."
+    ]
+    },
+    {
+    "logo": "kids",
+    "Item": "Kids' Toys",
+    "Price": "$50",
+    "Account": "Master Card",
+    "Date": "2024-09-27",
+    "Categorie": "Kids",
+    "Status": "Paid",
+    "Comments": [
+    "They loved their new toys!"
+    ]
+    },
+    {
+    "logo": "debt",
+    "Item": "Credit Card Payment",
+    "Price": "$200",
+    "Account": "Debit Card",
+    "Date": "2024-09-28",
+    "Categorie": "Debt",
+    "Status": "Paid",
+    "Comments": [
+    "Making progress on my debt."
+    ]
+    },
+    {
+    "logo": "rent",
+    "Item": "Mortgage Payment",
+    "Price": "$1500",
+    "Account": "Bank Transfer",
+    "Date": "2024-09-29",
+    "Categorie": "Rent/House",
+    "Status": "Paid",
+    "Comments": [
+    "Steady payment towards ownership."
+    ]
+    },
+    {
+    "logo": "car",
+    "Item": "Car Insurance",
+    "Price": "$100",
+    "Account": "Credit Card",
+    "Date": "2024-09-30",
+    "Categorie": "Car",
+    "Status": "Paid",
+    "Comments": [
+    "Necessary for driving safely."
+    ]
+    },
+    {
+    "logo": "savings",
+    "Item": "Savings Account Deposit",
+    "Price": "$500",
+    "Account": "Bank Transfer",
+    "Date": "2024-10-01",
+    "Categorie": "Savings",
+    "Status": "Deposited",
+    "Comments": [
+    "Saving for a vacation!"
+    ]
+    },
+    {
+    "logo": "other",
+    "Item": "Gift for a Friend",
+    "Price": "$25",
+    "Account": "Cash",
+    "Date": "2024-10-02",
+    "Categorie": "Other",
+    "Status": "Paid",
+    "Comments": [
+    "A lovely gift for their birthday."
+    ]
+    },
+    {
+    "logo": "health",
+    "Item": "Gym Membership",
+    "Price": "$40",
+    "Account": "Credit Card",
+    "Date": "2024-10-03",
+    "Categorie": "Health",
+    "Status": "Paid",
+    "Comments": [
+    "Staying fit and healthy!"
+    ]
+    },
+    {
+    "logo": "car",
+    "Item": "Gasoline",
+    "Price": "$30",
+    "Account": "Debit Card",
+    "Date": "2024-10-04",
+    "Categorie": "Car",
+    "Status": "Paid",
+    "Comments": [
+    "Filled up the tank for the week."
+    ]
+    },
+    {
+    "logo": "kids",
+    "Item": "School Supplies",
+    "Price": "$15",
+    "Account": "Cash",
+    "Date": "2024-10-05",
+    "Categorie": "Kids",
+    "Status": "Paid",
+    "Comments": [
+    "Ready for the school year!"
+    ]
+    },
+    {
+    "logo": "pets",
+    "Item": "Vet Check-up",
+    "Price": "$70",
+    "Account": "Debit Card",
+    "Date": "2024-10-06",
+    "Categorie": "Pets",
+    "Status": "Paid",
+    "Comments": [
+    "Routine check-up for my cat."
+    ]
+    }
+    ]
+
+];
+
 app.get("/api/spending", (req, res) => {
   res.send(spending);
 });
 
+app.post("/api/spending", upload.single("img"), (req, res) => {
+  const result = validateSpending(req.body);
 
-let spending = [
- [
-    {
-        "logo": "insurance",
-        "Item": "Doctor Appointment",
-        "Price": "$120",
-        "Account": "Insurance",
-        "Date": "2024-09-22",
-        "Categorie": "Health",
-        "Status": "Paid",
-        "Comments": [
-            "Routine check-up, very thorough!"
-        ]
-    },
-    {
-        "logo": "health",
-        "Item": "Pharmacy Purchase",
-        "Price": "$45",
-        "Account": "Debit Card",
-        "Date": "2024-09-23",
-        "Categorie": "Health",
-        "Status": "Paid",
-        "Comments": [
-            "Needed some meds and supplements."
-        ]
-    },
-    {
-        "logo": "rent",
-        "Item": "Monthly Rent",
-        "Price": "$1200",
-        "Account": "Bank Transfer",
-        "Date": "2024-09-24",
-        "Categorie": "Rent",
-        "Status": "Paid",
-        "Comments": [
-            "Paid on time, love this place!"
-        ]
-    },
-    {
-        "logo": "pets",
-        "Item": "Pet Food",
-        "Price": "$30",
-        "Account": "Credit Card",
-        "Date": "2024-09-25",
-        "Categorie": "Pets",
-        "Status": "Paid",
-        "Comments": [
-            "My dog loves this brand!"
-        ]
-    },
-    {
-        "logo": "insurance",
-        "Item": "Health Insurance Premium",
-        "Price": "$300",
-        "Account": "Visa",
-        "Date": "2024-09-26",
-        "Categorie": "Insurance",
-        "Status": "Paid",
-        "Comments": [
-            "Monthly premium for peace of mind."
-        ]
-    },
-    {
-        "logo": "kids",
-        "Item": "Kids' Toys",
-        "Price": "$50",
-        "Account": "Master Card",
-        "Date": "2024-09-27",
-        "Categorie": "Kids",
-        "Status": "Paid",
-        "Comments": [
-            "They loved their new toys!"
-        ]
-    },
-    {
-        "logo": "debt",
-        "Item": "Credit Card Payment",
-        "Price": "$200",
-        "Account": "Debit Card",
-        "Date": "2024-09-28",
-        "Categorie": "Debt",
-        "Status": "Paid",
-        "Comments": [
-            "Making progress on my debt."
-        ]
-    },
-    {
-        "logo": "rent",
-        "Item": "Mortgage Payment",
-        "Price": "$1500",
-        "Account": "Bank Transfer",
-        "Date": "2024-09-29",
-        "Categorie": "Rent/House",
-        "Status": "Paid",
-        "Comments": [
-            "Steady payment towards ownership."
-        ]
-    },
-    {
-        "logo": "car",
-        "Item": "Car Insurance",
-        "Price": "$100",
-        "Account": "Credit Card",
-        "Date": "2024-09-30",
-        "Categorie": "Car",
-        "Status": "Paid",
-        "Comments": [
-            "Necessary for driving safely."
-        ]
-    },
-    {
-        "logo": "savings",
-        "Item": "Savings Account Deposit",
-        "Price": "$500",
-        "Account": "Bank Transfer",
-        "Date": "2024-10-01",
-        "Categorie": "Savings",
-        "Status": "Deposited",
-        "Comments": [
-            "Saving for a vacation!"
-        ]
-    },
-    {
-        "logo": "other",
-        "Item": "Gift for a Friend",
-        "Price": "$25",
-        "Account": "Cash",
-        "Date": "2024-10-02",
-        "Categorie": "Other",
-        "Status": "Paid",
-        "Comments": [
-            "A lovely gift for their birthday."
-        ]
-    },
-    {
-        "logo": "health",
-        "Item": "Gym Membership",
-        "Price": "$40",
-        "Account": "Credit Card",
-        "Date": "2024-10-03",
-        "Categorie": "Health",
-        "Status": "Paid",
-        "Comments": [
-            "Staying fit and healthy!"
-        ]
-    },
-    {
-        "logo": "car",
-        "Item": "Gasoline",
-        "Price": "$30",
-        "Account": "Debit Card",
-        "Date": "2024-10-04",
-        "Categorie": "Car",
-        "Status": "Paid",
-        "Comments": [
-            "Filled up the tank for the week."
-        ]
-    },
-    {
-        "logo": "kids",
-        "Item": "School Supplies",
-        "Price": "$15",
-        "Account": "Cash",
-        "Date": "2024-10-05",
-        "Categorie": "Kids",
-        "Status": "Paid",
-        "Comments": [
-            "Ready for the school year!"
-        ]
-    },
-    {
-        "logo": "pets",
-        "Item": "Vet Check-up",
-        "Price": "$70",
-        "Account": "Debit Card",
-        "Date": "2024-10-06",
-        "Categorie": "Pets",
-        "Status": "Paid",
-        "Comments": [
-            "Routine check-up for my cat."
-        ]
-    }
-]
-];
+  if (result.error) {
+    res.status(400).send(result.error.details[0].message);
+    return;
+  }
+
+  const transaction = {
+    _id: spending.length + 1,
+    logo: req.body.logo,
+    Item: req.body.Item,
+    Price: req.body.Price,
+    Account: req.body.Account,
+    Date: req.body.Date,
+    Categorie: req.body.Categorie,
+    Status: req.body.Status,
+    Comments: req.body.Comments,
+  };
+
+  if (req.file) {
+    transaction.main_image = "images/" + req.file.filename;
+  }
+
+  spending.push(transaction);
+  res.status(200).send(transaction);
+});
 
 app.put("/api/spending/:id", upload.single("img"), (req, res) => {
   let transaction = spending.find((t) => t._id === parseInt(req.params.id));
-  if (!transaction) res.status(400).send("Transaction not found");
+
+  if (!transaction) res.status(400).send("Transaction with given id was not found");
+
   const result = validateSpending(req.body);
 
   if (result.error) {
@@ -239,7 +269,17 @@ app.put("/api/spending/:id", upload.single("img"), (req, res) => {
   res.send(transaction);
 });
 
+app.delete("/api/spending/:id", (req, res) => {
+  const transaction = spending.find((t) => t._id === parseInt(req.params.id));
 
+  if (!transaction) {
+    res.status(404).send("The transaction with the given id was not found");
+  }
+
+  const index = spending.indexOf(transaction);
+  spending.splice(index, 1);
+  res.send(transaction);
+});
 
 const validateSpending = (transaction) => {
   const schema = Joi.object({
@@ -251,11 +291,12 @@ const validateSpending = (transaction) => {
     Date: Joi.string().min(1).required(),
     Categorie: Joi.string().min(1).required(),
     Status: Joi.string().min(1).required(),
-    Comments: Joi.array().items(Joi.string()).required(),
+    Comments: Joi.array().items(Joi.string()).default([]),
   });
 
   return schema.validate(transaction);
 };
 
 app.listen(3002, () => {
+  console.log("I'm listening");
 });
