@@ -212,78 +212,8 @@ app.get("/api/spending", (req, res) => {
   res.send(spending);
 });
 
-app.post("/api/spending", upload.single("img"), (req, res) => {
-  const result = validateSpending(req.body);
-
-  if (result.error) {
-    res.status(400).send(result.error.details[0].message);
-    return;
-  }
-
-  const transaction = {
-    _id: spending.length + 1,
-    logo: req.body.logo,
-    Item: req.body.Item,
-    Price: req.body.Price,
-    Account: req.body.Account,
-    Date: req.body.Date,
-    Categorie: req.body.Categorie,
-    Status: req.body.Status,
-    Comments: req.body.Comments,
-  };
-
-  if (req.file) {
-    transaction.main_image = "images/" + req.file.filename;
-  }
-
-  spending.push(transaction);
-  res.status(200).send(transaction);
-});
-
-app.put("/api/spending/:id", upload.single("img"), (req, res) => {
-  let transaction = spending.find((t) => t._id === parseInt(req.params.id));
-
-  if (!transaction) res.status(400).send("Transaction with given id was not found");
-
-  const result = validateSpending(req.body);
-
-  if (result.error) {
-    res.status(400).send(result.error.details[0].message);
-    return;
-  }
-
-  transaction.logo = req.body.logo;
-  transaction.Item = req.body.Item;
-  transaction.Price = req.body.Price;
-  transaction.Account = req.body.Account;
-  transaction.Date = req.body.Date;
-  transaction.Categorie = req.body.Categorie;
-  transaction.Status = req.body.Status;
-  transaction.Comments = req.body.Comments;
-
-  if (req.file) {
-    transaction.main_image = "images/" + req.file.filename;
-  }
-
-  res.send(transaction);
-});
 
 
-const validateSpending = (transaction) => {
-  const schema = Joi.object({
-    _id: Joi.allow(""),
-    logo: Joi.string().min(1).required(),
-    Item: Joi.string().min(3).required(),
-    Price: Joi.string().min(1).required(),
-    Account: Joi.string().min(1).required(),
-    Date: Joi.string().min(1).required(),
-    Categorie: Joi.string().min(1).required(),
-    Status: Joi.string().min(1).required(),
-    Comments: Joi.array().items(Joi.string()).required(),
-  });
-
-  return schema.validate(transaction);
-};
 
 app.listen(3002, () => {
   console.log("I'm listening");
