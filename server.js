@@ -268,17 +268,6 @@ app.put("/api/spending/:id", upload.single("img"), (req, res) => {
   res.send(transaction);
 });
 
-app.delete("/api/spending/:id", (req, res) => {
-  const transaction = spending.find((t) => t._id === parseInt(req.params.id));
-
-  if (!transaction) {
-    res.status(404).send("The transaction with the given id was not found");
-  }
-
-  const index = spending.indexOf(transaction);
-  spending.splice(index, 1);
-  res.send(transaction);
-});
 
 const validateSpending = (transaction) => {
   const schema = Joi.object({
