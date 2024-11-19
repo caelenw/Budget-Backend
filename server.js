@@ -4,9 +4,9 @@ const Joi = require("joi");
 const multer = require("multer");
 const app = express();
 
-app.use(express.static("public")); // Serves all static files from the public folder
-app.use("/uploads", express.static("uploads")); // If you need a separate upload path
-app.use("/images", express.static("public/images")); // Serve images from public/images
+app.use(express.static("public")); 
+app.use("/uploads", express.static("uploads"));
+app.use("/images", express.static("public/images")); 
 app.use(express.json()); 
 app.use(cors());
 
@@ -41,7 +41,7 @@ let spending = [
     Categorie: "Health",
     Status: "Paid",
     Comments: ["Routine check-up, very thorough!"],
-  },
+  }
 ];
 
 const validateSpending = (transaction) => {
@@ -71,8 +71,7 @@ app.post("/api/spending", upload.single("logo"), (req, res) => {
   }
 
   const newTransaction = {
-    ...req.body,
-    logo: req.file ? `/images/${req.file.filename}` : "", 
+    ...req.body
   };
 
   spending.push(newTransaction); 
