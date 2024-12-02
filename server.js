@@ -23,6 +23,7 @@ const upload = multer({ storage: storage });
 
 let spending = [
   {
+    _id: "1",
     logo: "insurance",
     Item: "Doctor Appointment",
     Price: "$120",
@@ -33,8 +34,9 @@ let spending = [
     Comments: ["Routine check-up, very thorough!"],
   },
   {
+    _id: "2",
     logo: "car",
-    Item: "Doctor Appointment",
+    Item: "car Appointment",
     Price: "$120",
     Account: "Insurance",
     Date: "2024-09-22",
@@ -71,6 +73,7 @@ app.post("/api/spending", upload.single("logo"), (req, res) => {
   }
 
   const newTransaction = {
+    _id: Date.now().toString(), 
     ...req.body
   };
 
@@ -78,10 +81,42 @@ app.post("/api/spending", upload.single("logo"), (req, res) => {
   res.send(newTransaction);
 });
 
+app.put('/api/spending/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedTransaction = req.body;
+    const index = spending.findIndex(transaction => transaction._id === id);
+    
+    if (index === -1) {
+      return res.status(404).send('Transaction not found');
+    }
+    spending[index] = { ...spending[index], ...updatedTransaction };
+
+    res.status(200).send(spending[index]);  
+  } catch (error) {
+    console.error('Error updating transaction:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+app.delete("/api/spending/:id", (req, res) => {
+  const id = req.params.id.trim(); 
+  const transactionIndex = spending.findIndex((transaction) => transaction._id === id);
+
+  if (transactionIndex === -1) {
+    return res.status(404).send("Transaction ID not found");
+  }
+
+  const deletedTransaction = spending.splice(transactionIndex, 1);
+
+  res.status(200).send(deletedTransaction[0]); 
+});
+
+
 app.get("/api/spending", (req, res) => {
   res.json(spending);
 });
 
-app.listen(3002, () => {
-  console.log("Server is running on port 3002");
+app.listen(3003, () => {
+  console.log("Server is running on port 3003");
 });
+
