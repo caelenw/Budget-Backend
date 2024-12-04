@@ -2,13 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const Joi = require("joi");
 const multer = require("multer");
+const mongoose = require("mongoose");
 const app = express();
 
-app.use(express.static("public")); 
-app.use("/uploads", express.static("uploads"));
-app.use("/images", express.static("public/images")); 
-app.use(express.json()); 
 app.use(cors());
+app.use(express.static("public"));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -21,102 +19,112 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-let spending = [
-  {
-    _id: "1",
-    logo: "insurance",
-    Item: "Doctor Appointment",
-    Price: "$120",
-    Account: "Insurance",
-    Date: "2024-09-22",
-    Categorie: "Health",
-    Status: "Paid",
-    Comments: ["Routine check-up, very thorough!"],
-  },
-  {
-    _id: "2",
-    logo: "car",
-    Item: "car Appointment",
-    Price: "$120",
-    Account: "Insurance",
-    Date: "2024-09-22",
-    Categorie: "Health",
-    Status: "Paid",
-    Comments: ["Routine check-up, very thorough!"],
-  }
-];
+mongoose
+  .connect("mongodb+srv://Vydw4EykLl2G7Wt5:UGqvFXYYKlawhYkU@budgetwithin.wnbzq.mongodb.net/")
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((error) => {
+    console.log("Couldn't connect to MongoDB", error);
+  });
+
+const spendingSchema = new mongoose.Schema({
+  logo: String,
+  item: { type: String, required: true },
+  price: { type: String, required: true },
+  account: { type: String, required: true },
+  date: { type: String, required: true },
+  category: { type: String, required: true },
+  status: { type: String, required: true },
+  comments: { type: [String], default: [] },
+});
+
+const Spending = mongoose.model("Spending", spendingSchema);
 
 const validateSpending = (transaction) => {
   const schema = Joi.object({
-    _id: Joi.allow(""),
     logo: Joi.string(),
-    Item: Joi.string().min(3).required(),
-    Price: Joi.string().min(1).required(),
-    Account: Joi.string().min(1).required(),
-    Date: Joi.string().min(1).required(),
-    Categorie: Joi.string().min(1).required(),
-    Status: Joi.string().min(1).required(),
-    Comments: Joi.array().items(Joi.string()).default([]),
+    item: Joi.string().min(3).required(),
+    price: Joi.string().min(1).required(),
+    account: Joi.string().min(1).required(),
+    date: Joi.string().min(1).required(),
+    category: Joi.string().min(1).required(),
+    status: Joi.string().min(1).required(),
+    comments: Joi.array().items(Joi.string()).default([]),
   });
 
   return schema.validate(transaction);
 };
 
-app.post("/api/spending", upload.single("logo"), (req, res) => {
-  if (req.body.Comments) {
-    req.body.Comments = JSON.parse(req.body.Comments);
-  }
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
 
+app.get("/api/spending", async (req, res) => {
+  try {
+    const spendingData = await Spending.find();
+    res.json(spendingData);
+  } catch (error) {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/spending", upload.single("logo"), async (req, res) => {
   const { error } = validateSpending(req.body);
   if (error) {
     return res.status(400).send(error.details[0].message);
   }
 
-  const newTransaction = {
-    _id: Date.now().toString(), 
-    ...req.body
-  };
+  const newTransaction = new Spending({
+    ...req.body,
+    logo: req.file ? req.file.filename : undefined,
+  });
 
-  spending.push(newTransaction); 
-  res.send(newTransaction);
-});
-
-app.put('/api/spending/:id', (req, res) => {
   try {
-    const { id } = req.params;
-    const updatedTransaction = req.body;
-    const index = spending.findIndex(transaction => transaction._id === id);
-    
-    if (index === -1) {
-      return res.status(404).send('Transaction not found');
-    }
-    spending[index] = { ...spending[index], ...updatedTransaction };
-
-    res.status(200).send(spending[index]);  
+    const savedTransaction = await newTransaction.save();
+    res.status(200).send(savedTransaction);
   } catch (error) {
-    console.error('Error updating transaction:', error);
-    res.status(500).send('Internal Server Error');
+    res.status(500).send("Internal Server Error");
   }
 });
-app.delete("/api/spending/:id", (req, res) => {
-  const id = req.params.id.trim(); 
-  const transactionIndex = spending.findIndex((transaction) => transaction._id === id);
 
-  if (transactionIndex === -1) {
-    return res.status(404).send("Transaction ID not found");
+app.put("/api/spending/:id", upload.single("logo"), async (req, res) => {
+  const { id } = req.params;
+  const { error } = validateSpending(req.body);
+  if (error) {
+    return res.status(400).send(error.details[0].message);
   }
 
-  const deletedTransaction = spending.splice(transactionIndex, 1);
+  try {
+    const transaction = await Spending.findById(id);
+    if (!transaction) {
+      return res.status(404).send("Transaction not found");
+    }
 
-  res.status(200).send(deletedTransaction[0]); 
+    Object.assign(transaction, req.body);
+    if (req.file) {
+      transaction.logo = req.file.filename;
+    }
+    await transaction.save();
+    res.status(200).send(transaction);
+  } catch (error) {
+    res.status(500).send("Internal Server Error");
+  }
 });
 
-
-app.get("/api/spending", (req, res) => {
-  res.json(spending);
+app.delete("/api/spending/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const transaction = await Spending.findByIdAndDelete(id);
+    if (!transaction) {
+      return res.status(404).send("Transaction ID not found");
+    }
+    res.status(200).send(transaction);
+  } catch (error) {
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 app.listen(3003, () => {
   console.log("Server is running on port 3003");
 });
-
