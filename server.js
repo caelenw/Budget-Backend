@@ -1,121 +1,125 @@
 const express = require("express");
 const cors = require("cors");
 const Joi = require("joi");
-const multer = require("multer");
+const mongoose = require("mongoose");
+
 const app = express();
 
-app.use(express.static("public")); 
-app.use("/uploads", express.static("uploads"));
-app.use("/images", express.static("public/images")); 
-app.use(express.json()); 
+app.use(express.static("public"));
+app.use(express.json());
 app.use(cors());
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "./public/images/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname);
-  },
-});
-
-const upload = multer({ storage: storage });
-
-let spending = [
-  {
-    _id: "1",
-    logo: "insurance",
-    Item: "Doctor Appointment",
-    Price: "$120",
-    Account: "Insurance",
-    Date: "2024-09-22",
-    Categorie: "Health",
-    Status: "Paid",
-    Comments: ["Routine check-up, very thorough!"],
-  },
-  {
-    _id: "2",
-    logo: "car",
-    Item: "car Appointment",
-    Price: "$120",
-    Account: "Insurance",
-    Date: "2024-09-22",
-    Categorie: "Health",
-    Status: "Paid",
-    Comments: ["Routine check-up, very thorough!"],
-  }
-];
 
 const validateSpending = (transaction) => {
   const schema = Joi.object({
     _id: Joi.allow(""),
     logo: Joi.string(),
-    Item: Joi.string().min(3).required(),
-    Price: Joi.string().min(1).required(),
+    item: Joi.string().min(1).required(),
+    Price: Joi.number().min(1).required(),
     Account: Joi.string().min(1).required(),
     Date: Joi.string().min(1).required(),
     Categorie: Joi.string().min(1).required(),
     Status: Joi.string().min(1).required(),
-    Comments: Joi.array().items(Joi.string()).default([]),
+    Comment: Joi.alternatives().try(
+      Joi.string(),
+      Joi.array().items(Joi.string())
+    ).default([]),
   });
 
-  return schema.validate(transaction);
+  const result = schema.validate(transaction, { allowUnknown: true });
+  console.log("Validation result:", result);
+  return result;
 };
 
-app.post("/api/spending", upload.single("logo"), (req, res) => {
-  if (req.body.Comments) {
-    req.body.Comments = JSON.parse(req.body.Comments);
-  }
-
-  const { error } = validateSpending(req.body);
-  if (error) {
-    return res.status(400).send(error.details[0].message);
-  }
-
-  const newTransaction = {
-    _id: Date.now().toString(), 
-    ...req.body
-  };
-
-  spending.push(newTransaction); 
-  res.send(newTransaction);
+const spendingSchema = new mongoose.Schema({
+  logo: String,
+  item: String,
+  Price: Number,
+  Account: String,
+  Date: String,
+  Status: String,
+  Categorie: String,
+  Comment: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: [],
+  },
 });
 
-app.put('/api/spending/:id', (req, res) => {
+const Spending = mongoose.model("Spending", spendingSchema);
+mongoose
+  .connect("mongodb+srv://Vydw4EykLl2G7Wt5:PJlTMHsS7uxdPx7s@budgetwithin.wnbzq.mongodb.net/")
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((error) => {
+    console.log("Error connecting to MongoDB", error);
+  });
+
+app.post("/api/spending", async (req, res) => {
+  const transactionData = { ...req.body };
+  delete transactionData.__v; // Remove __v field
+
+  const result = validateSpending(transactionData);
+
+  if (result.error) {
+    return res.status(400).send(result.error.details[0].message);
+  }
+
+  const transaction = new Spending(transactionData);
+
   try {
-    const { id } = req.params;
-    const updatedTransaction = req.body;
-    const index = spending.findIndex(transaction => transaction._id === id);
-    
-    if (index === -1) {
-      return res.status(404).send('Transaction not found');
+    const newSpending = await transaction.save();
+    res.status(200).send(newSpending);
+  } catch (err) {
+    res.status(500).send("Error saving transaction");
+  }
+});
+
+app.put("/api/spending/:id", async (req, res) => {
+  const transactionData = { ...req.body };
+  delete transactionData.__v; 
+
+  const result = validateSpending(transactionData);
+
+  if (result.error) {
+    return res.status(400).send(result.error.details[0].message);
+  }
+
+  try {
+    const updatedSpending = await Spending.findByIdAndUpdate(
+      req.params.id,
+      transactionData,
+      { new: true }
+    );
+    if (!updatedSpending) {
+      return res.status(404).send("Transaction not found");
     }
-    spending[index] = { ...spending[index], ...updatedTransaction };
-
-    res.status(200).send(spending[index]);  
-  } catch (error) {
-    console.error('Error updating transaction:', error);
-    res.status(500).send('Internal Server Error');
+    res.status(200).send(updatedSpending);
+  } catch (err) {
+    res.status(500).send("Error updating transaction: " + err.message);
   }
 });
-app.delete("/api/spending/:id", (req, res) => {
-  const id = req.params.id.trim(); 
-  const transactionIndex = spending.findIndex((transaction) => transaction._id === id);
 
-  if (transactionIndex === -1) {
-    return res.status(404).send("Transaction ID not found");
+app.delete("/api/spending/:id", async (req, res) => {
+  try {
+    const spending = await Spending.findByIdAndDelete(req.params.id);
+    if (!spending) {
+      return res.status(404).send("Transaction not found");
+    }
+    res.status(200).send(spending);
+  } catch (err) {
+    res.status(500).send("Error deleting transaction");
   }
-
-  const deletedTransaction = spending.splice(transactionIndex, 1);
-
-  res.status(200).send(deletedTransaction[0]); 
 });
 
-
-app.get("/api/spending", (req, res) => {
-  res.json(spending);
+app.get("/api/spending", async (req, res) => {
+  try {
+    const spending = await Spending.find();
+    res.send(spending);
+  } catch (err) {
+    res.status(500).send("Error fetching spending data");
+  }
 });
 
-app.listen(3003, () => {
-  console.log("Server is running on port 3003");
+app.listen(3001, () => {
+  console.log("listening... I'm running");
 });
